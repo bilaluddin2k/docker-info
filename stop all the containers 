@@ -1,0 +1,22 @@
+---
+- name: Stop and remove all Docker containers
+  hosts: localhost
+  become: true
+  tasks:
+    - name: Get list of all running containers
+      shell: "docker ps -q"
+      register: running_containers
+
+    - name: Stop all running containers
+      shell: "docker stop {{ item }}"
+      loop: "{{ running_containers.stdout_lines }}"
+      when: running_containers.stdout_lines | length > 0
+
+    - name: Get list of all containers (including stopped ones)
+      shell: "docker ps -a -q"
+      register: all_containers
+
+    - name: Remove all containers
+      shell: "docker rm {{ item }}"
+      loop: "{{ all_containers.stdout_lines }}"
+      when: all_containers.stdout_lines | length > 0
